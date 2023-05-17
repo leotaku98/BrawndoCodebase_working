@@ -55,8 +55,6 @@ public class SPFEAFacade {
 
         double discountRate = 1.0 - (discountRateRaw / 100.0);
 
-        Order order;
-
 
         if (!TestDatabase.getInstance().getCustomerIDs(token).contains(customerID)) {
             throw new IllegalArgumentException("Invalid customer ID");
@@ -66,56 +64,36 @@ public class SPFEAFacade {
         ConcreteOrder concreteOrder = new ConcreteOrder(id, date, discountRate, customerID);;
         if (isSubscription) {
             if (1 == discountType) { // 1 is flat rate
-                    if (isBusiness) {
-                        order = new NewOrderImplSubscription(id, date, customerID, discountRate, numShipments);
-                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, customerID, numShipments);
-                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-
-                    } else {
-                        order = new Order66Subscription(id, date, discountRate, customerID, numShipments);
-                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, customerID, numShipments);
-                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    }
-                } else if (2 == discountType) { // 2 is bulk discount
-                    if (isBusiness) {
-                        order = new BusinessBulkDiscountSubscription(id, customerID, date, discountThreshold, discountRate, numShipments);
-                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, discountThreshold, customerID, numShipments);
-                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    } else {
-                        order = new FirstOrderSubscription(id, date, discountRate, discountThreshold, customerID, numShipments);
-                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, discountThreshold, customerID, numShipments);
-                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    }
+                concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, customerID, numShipments);
+                concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
+            } else if (2 == discountType) { // 2 is bulk discount
+                concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, discountThreshold, customerID, numShipments);
+                concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
             } else {return null;}
         } else {
             if (1 == discountType) {
                 if (isBusiness) {
                     concreteOrder = new ConcreteOrder(id, date, discountRate, customerID);
                     concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    concreteOrder.acceptInvoiceData(new ConcreteOrderVisitor(isBusiness, discountType));
-                    order = new NewOrderImpl(id, date, customerID, discountRate);
 
                 } else {
                     concreteOrder = new ConcreteOrder(id, date, discountRate, customerID);
                     concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    order = new Order66(id, date, discountRate, customerID);
                 }
             } else if (2 == discountType) {
                 if (isBusiness) {
                     concreteOrder = new ConcreteOrder(id, date, discountRate, discountThreshold, customerID);
                     concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    order = new BusinessBulkDiscountOrder(id, customerID, date, discountThreshold, discountRate);
                 } else {
                     concreteOrder = new ConcreteOrder(id, date, discountRate, discountThreshold, customerID);
                     concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
-                    order = new FirstOrder(id, date, discountRate, discountThreshold, customerID);
                 }
             } else {return null;}
         }
 
-        TestDatabase.getInstance().saveOrder(token, order);
-        this.uowOrder.saveOrder(order);
-        return order.getOrderID();
+        TestDatabase.getInstance().saveOrder(token, concreteOrder);
+        this.uowOrder.saveOrder(concreteOrder);
+        return concreteOrder.getOrderID();
     }
 
     public List<Integer> getAllCustomerIDs() {

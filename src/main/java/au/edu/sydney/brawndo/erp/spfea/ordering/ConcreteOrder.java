@@ -137,10 +137,6 @@ public class ConcreteOrder implements Order {
 
     }
 
-    public void acceptInvoiceData(OrderVisitor orderVisitor){
-
-    }
-
     protected double getDiscountRate() {
         return this.discountRate;
     }
