@@ -67,15 +67,24 @@ public class SPFEAFacade {
         if (isSubscription) {
             if (1 == discountType) { // 1 is flat rate
                     if (isBusiness) {
-                         order = new NewOrderImplSubscription(id, date, customerID, discountRate, numShipments);
+                        order = new NewOrderImplSubscription(id, date, customerID, discountRate, numShipments);
+                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, customerID, numShipments);
+                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
+
                     } else {
                         order = new Order66Subscription(id, date, discountRate, customerID, numShipments);
+                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, customerID, numShipments);
+                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
                     }
                 } else if (2 == discountType) { // 2 is bulk discount
                     if (isBusiness) {
                         order = new BusinessBulkDiscountSubscription(id, customerID, date, discountThreshold, discountRate, numShipments);
+                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, discountThreshold, customerID, numShipments);
+                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
                     } else {
                         order = new FirstOrderSubscription(id, date, discountRate, discountThreshold, customerID, numShipments);
+                        concreteOrder = new ConcreteSubscriptionOrder(id, date, discountRate, discountThreshold, customerID, numShipments);
+                        concreteOrder.accept(new ConcreteOrderVisitor(isBusiness, discountType));
                     }
             } else {return null;}
         } else {
@@ -102,9 +111,6 @@ public class SPFEAFacade {
                     order = new FirstOrder(id, date, discountRate, discountThreshold, customerID);
                 }
             } else {return null;}
-            TestDatabase.getInstance().saveOrder(token, concreteOrder);
-            this.uowOrder.saveOrder(order);
-            return concreteOrder.getOrderID();
         }
 
         TestDatabase.getInstance().saveOrder(token, order);

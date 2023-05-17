@@ -16,6 +16,7 @@ public interface OrderVisitor {
     Double visitTotalCost(ConcreteSubscriptionOrder order);
 
     String visitInvoiceData(ConcreteOrder order);
+    String visitInvoiceData(ConcreteSubscriptionOrder order);
 
 }
 

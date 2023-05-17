@@ -51,37 +51,13 @@ public class ConcreteOrderVisitor implements OrderVisitor {
 
     @Override
     public Double visitTotalCost(ConcreteSubscriptionOrder order) {
-        Map<Product, Integer> products = order.getProducts();
-        double discountRate = order.getDiscountRate();
-        int discountThreshold = order.getDiscountThreshold();
-        int numShipments = order.numberOfShipmentsOrdered();
-        double cost = 0.0;
-        if (1 == discountType) { // 1 is flat rate
-
-            if (isBusiness) {
-                cost = order.getTotalCost() * numShipments;
-                //order = new NewOrderImplSubscription(id, date, customerID, discountRate, numShipments);
-            } else {
-                cost = order.getTotalCost() * numShipments;
-                //order = new Order66Subscription(id, date, discountRate, customerID, numShipments);
-            }
-        } else if (2 == discountType) { // 2 is bulk discount
-            if (isBusiness) {
-                cost = order.getTotalCost() * numShipments;
-                //order = new BusinessBulkDiscountSubscription(id, customerID, date, discountThreshold, discountRate, numShipments);
-            } else {
-                cost = order.getTotalCost() * numShipments;
-                //order = new FirstOrderSubscription(id, date, discountRate, discountThreshold, customerID, numShipments);
-            }
-        } else {return null;}
-        return cost;
+        // all identical
+        return null;
     }
 
 
     public String visitInvoiceData(ConcreteOrder order){
         Map<Product, Integer> products = order.getProducts();
-        double discountRate = order.getDiscountRate();
-        int discountThreshold = order.getDiscountThreshold();
         if (1 == discountType) { // 1 is flat rate
 
             if (isBusiness) {
@@ -142,10 +118,79 @@ public class ConcreteOrderVisitor implements OrderVisitor {
                 //order = new FirstOrderSubscription(id, date, discountRate, discountThreshold, customerID, numShipments);
             }
         }
-        String s = "Your business account has been charged: $1,100.00\n" +
-                "Please see your Brawndo© merchandising representative for itemised details.";
+        return null;
+    }
 
-        return s;
+    @Override
+    public String visitInvoiceData(ConcreteSubscriptionOrder order) {
+        Map<Product, Integer> products = order.getProducts();
+        double discountRate = order.getDiscountRate();
+        int discountThreshold = order.getDiscountThreshold();
+        if (1 == discountType) { // 1 is flat rate
+
+            if (isBusiness) {
+                return String.format("Your business account will be charged: $%,.2f each week, with a total overall cost of: $%,.2f" +
+                        "\nPlease see your Brawndo© merchandising representative for itemised details.", order.getRecurringCost(), order.getTotalCost());
+                //order = new NewOrderImplSubscription(id, date, customerID, discountRate, numShipments);
+            } else {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("Thank you for your Brawndo© order!\n");
+                sb.append("Your order comes to: $");
+                sb.append(String.format("%,.2f", order.getRecurringCost()));
+                sb.append(" each week, with a total overall cost of: $");
+                sb.append(String.format("%,.2f", order.getTotalCost()));
+                sb.append("\nPlease see below for details:\n");
+                List<Product> keyList = new ArrayList<>(products.keySet());
+                keyList.sort(Comparator.comparing(Product::getProductName).thenComparing(Product::getCost));
+
+                for (Product product: keyList) {
+                    sb.append("\tProduct name: ");
+                    sb.append(product.getProductName());
+                    sb.append("\tQty: ");
+                    sb.append(products.get(product));
+                    sb.append("\tCost per unit: ");
+                    sb.append(String.format("$%,.2f", product.getCost()));
+                    sb.append("\tSubtotal: ");
+                    sb.append(String.format("$%,.2f\n", product.getCost() * products.get(product)));
+                }
+
+                return sb.toString();
+                //order = new Order66Subscription(id, date, discountRate, customerID, numShipments);
+            }
+        } else if (2 == discountType) { // 2 is bulk discount
+            if (isBusiness) {
+                return String.format("Your business account will be charged: $%,.2f each week, with a total overall cost of: $%,.2f" +
+                        "\nPlease see your Brawndo© merchandising representative for itemised details.", order.getRecurringCost(), order.getTotalCost());
+                //order = new BusinessBulkDiscountSubscription(id, customerID, date, discountThreshold, discountRate, numShipments);
+            } else {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("Thank you for your Brawndo© order!\n");
+                sb.append("Your order comes to: $");
+                sb.append(String.format("%,.2f", order.getRecurringCost()));
+                sb.append(" each week, with a total overall cost of: $");
+                sb.append(String.format("%,.2f", order.getTotalCost()));
+                sb.append("\nPlease see below for details:\n");
+                List<Product> keyList = new ArrayList<>(products.keySet());
+                keyList.sort(Comparator.comparing(Product::getProductName).thenComparing(Product::getCost));
+
+                for (Product product: keyList) {
+                    sb.append("\tProduct name: ");
+                    sb.append(product.getProductName());
+                    sb.append("\tQty: ");
+                    sb.append(products.get(product));
+                    sb.append("\tCost per unit: ");
+                    sb.append(String.format("$%,.2f", product.getCost()));
+                    sb.append("\tSubtotal: ");
+                    sb.append(String.format("$%,.2f\n", product.getCost() * products.get(product)));
+                }
+
+                return sb.toString();
+                //order = new FirstOrderSubscription(id, date, discountRate, discountThreshold, customerID, numShipments);
+            }
+        }
+        return null;
     }
 
 
